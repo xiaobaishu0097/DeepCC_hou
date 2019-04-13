@@ -29,6 +29,8 @@ if isempty(tracklets)
 end
 
 featureVectors      = {tracklets.feature};
+realdataInTracklets = {tracklets.realdata};
+dataInTracklets     = {tracklets.data};
 % adaptive number of appearance groups
 if params.appearance_groups == 0
     % Increase number of groups until no group is too large to solve 
@@ -61,8 +63,8 @@ for i = 1 : length(allGroups)
         [spacetimeAffinity, impossibilityMatrix, indifferenceMatrix] = getSpaceTimeAffinity(tracklets(indices), params.beta, params.speed_limit, params.indifference_time, iCam);
         spacetimeAffinity = spacetimeAffinity-1;
     elseif opts.dataset == 1 || opts.dataset == 2
-        [spacetimeAffinity, impossibilityMatrix, indifferenceMatrix] = aic_L2_motion_score(opts, tracklets(indices), params.beta, params.speed_limit, params.indifference_time, iCam);
-%         impossibilityMatrix = impossibility_frame_overlap([tracklets(indices).startFrame]',[tracklets(indices).endFrame]');    
+        spacetimeAffinity = 0;
+        impossibilityMatrix = impossibility_frame_overlap([tracklets(indices).startFrame]',[tracklets(indices).endFrame]');    
     end
     
     % compute appearance and spacetime scores
@@ -82,15 +84,30 @@ for i = 1 : length(allGroups)
     if params.alpha
         correlationMatrix = appearanceAffinity + params.alpha*spacetimeAffinity;
         correlationMatrix = correlationMatrix .* indifferenceMatrix.^params.use_indiff;
-        correlationMatrix(impossibilityMatrix == 1) = -inf;  
+        correlationMatrix(impossibilityMatrix == 1) = -inf;
     else
-        correlationMatrix = appearanceAffinity;
-%         correlationMatrix(impossibilityMatrix == 1) = -inf;  
+        correlationMatrix = params.weightAppearance .* appearanceAffinity;
     end
+    
+    if params.og_smoothness_score
+        smoothnessAffinity = getSmoothnessMatrix(realdataInTracklets(indices), params.smoothness_interval_length);
+        correlationMatrix =  correlationMatrix + params.weightSmoothness .* smoothnessAffinity;
+    end
+    
+    if params.og_velocity_change_score
+        velocityChangeAffinity = getVelocityChangeMatrix(dataInTracklets(indices));
+        correlationMatrix = correlationMatrix + params.weightVelocityChange .* velocityChangeAffinity;
+    end
+    
+    if params.og_time_interval_score
+        timeIntervalAffinity = getTimeIntervalMatrix(dataInTracklets(indices));
+        correlationMatrix = correlationMatrix + params.weightTimeInterval .* timeIntervalAffinity;
+    end
+    
     correlationMatrix(sameLabels) = 1;
     
     % show appearance group tracklets
-    if opts.visualize, trajectoriesVisualizePart2; end
+%     if opts.visualize, trajectoriesVisualizePart2; end
     
     % solve the optimization problem
     solutionTime = tic;
