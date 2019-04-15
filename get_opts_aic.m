@@ -5,11 +5,11 @@ addpath(genpath('src'))
 opts = [];
 opts.dataset = 2;%0 for duke, 1 for mot, 2 for aic
 opts.feature_dir     = [];
-opts.dataset_path    = '~/Data/AIC19';
-opts.gurobi_path     = '~/Utils/gurobi801/linux64/matlab';
+opts.dataset_path    = 'D:/Data/AIC19';
+opts.gurobi_path     = 'C:/Utils/gurobi801/linux64/matlab';
 opts.experiment_root = 'experiments';
 opts.experiment_name = 'aic_demo';
-opts.projection = get_projection_param(opts);
+[opts.projection,opts.fisheye_mapping] = get_projection_param(opts);
 
 opts.reader = MyVideoReader_aic(opts.dataset_path);
 
@@ -39,14 +39,13 @@ opts.fft = false;
 opts.fps = 10;
 opts.frame_offset = get_frame_offset(opts);
 opts.world_center = {[42.525678, -90.723601],[42.491916, -90.723723],[42.498780, -90.686393],[42.498780, -90.686393],[42.498780, -90.686393]};
-opts.world_scale = 1e6;
-opts.fisheye_mapping = get_fisheye_mapping(opts);
+opts.world_scale = 6371000;
 
 
 % Tracklets
 tracklets = [];
 tracklets.spatial_groups = 1;
-tracklets.window_width = 5;
+tracklets.window_width = 10;
 tracklets.min_length = 2;
 tracklets.alpha = 1;
 tracklets.beta = 0.02;
@@ -76,14 +75,11 @@ trajectories.step = false;
 trajectories.og_appear_score = true;
 trajectories.og_motion_score = true;
 trajectories.use_indiff = true;
-trajectories.og_smoothness_score = 0;
-trajectories.og_velocity_change_score = 0;
-trajectories.og_time_interval_score = 0;
-trajectories.smoothness_interval_length = 2;
-trajectories.weightAppearance = 1;
+trajectories.smoothness_interval_length = 4;
 trajectories.weightSmoothness = 0;
 trajectories.weightVelocityChange = 0;
 trajectories.weightTimeInterval = 0;
+trajectories.weightIOU = 0;
 
 % Identities
 identities = [];
