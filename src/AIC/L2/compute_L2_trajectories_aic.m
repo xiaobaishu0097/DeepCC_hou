@@ -12,7 +12,8 @@ else
     motion_model_param = load(fullfile('src','hyper_score/logs',opts.motion_model_name));
 end
 for scene = opts.seqs{opts.sequence}
-    for iCam = opts.cams_in_scene{scene}
+    for i = length(opts.cams_in_scene{scene}):-1:1
+    iCam = opts.cams_in_scene{scene}(i);
     opts.current_camera = iCam;
 
     % Load OpenPose detections for current camera
@@ -58,7 +59,7 @@ for scene = opts.seqs{opts.sequence}
 
     %% Save output
     fprintf('Saving results\n');
-    fileOutput = trackerOutput(:, [1:6]);
+    fileOutput = trackerOutput;
     dlmwrite(sprintf('%s/%s/L2-trajectories/cam%d_%s.txt', ...
         opts.experiment_root, ...
         opts.experiment_name, ...

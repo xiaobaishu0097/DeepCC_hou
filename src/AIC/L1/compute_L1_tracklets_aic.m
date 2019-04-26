@@ -11,7 +11,7 @@ function compute_L1_tracklets_aic(opts)
         motion_model_param = load(fullfile('src','hyper_score/logs',opts.motion_model_name));
     end
     for scene = opts.seqs{opts.sequence}
-    for i = 1:numel(opts.cams_in_scene{scene})
+    for i = numel(opts.cams_in_scene{scene}):-1:1
         iCam = opts.cams_in_scene{scene}(i);
         opts.current_camera = iCam;
 
@@ -37,6 +37,8 @@ function compute_L1_tracklets_aic(opts)
         else
             features = features(3:end,features(2,:)>=start_frame & features(2,:)<=end_frame);
         end
+        
+        assert(size(features,2) == size(detections,1))
 
         appearance = cell(size(all_dets,1),1);
         frames     = cell(size(all_dets,1),1);
